@@ -109,13 +109,13 @@ const parseCSVValue = (value) => {
 };
 
 const formatCurrency = (value) => {
-  if (value === null || value === undefined) return "Â£0";
-  return "Â£" + Math.round(value).toLocaleString();
+  if (value === null || value === undefined) return "£0";
+  return "£" + Math.round(value).toLocaleString();
 };
 
 const formatCurrencyDecimal = (value) => {
-  if (value === null || value === undefined) return "Â£0";
-  return "Â£" + value.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (value === null || value === undefined) return "£0";
+  return "£" + value.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 // Parse CSV data functions
