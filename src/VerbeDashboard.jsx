@@ -198,7 +198,7 @@ const KpiCard = ({ label, value, trend, isPositive, icon }) => (
     </div>
     {trend !== undefined && (
       <div className={`flex items-center gap-1 mt-4 text-sm font-medium ${isPositive ? "text-emerald-600" : "text-red-600"}`}>
-        <span>{isPositive ? "â" : "â"}</span>
+        <span>{isPositive ? "↑" : "↓"}</span>
         <span>{trend}</span>
       </div>
     )}
