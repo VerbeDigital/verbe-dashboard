@@ -7,7 +7,7 @@ const SHEET_IDS = {
   lifetimeRevenue: "1774294421",
   clients2023: "1624615474",
   clients2024: "620259654",
-  clients2025: "303780733",
+  clients2025: "303780733"
   clients2026: "514128140",
 };
 
