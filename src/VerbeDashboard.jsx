@@ -80,9 +80,10 @@ const FALLBACK_CLIENTS = {
   },
 };
 
-const COLORS = ["#7c3aed", "#6366f1", "#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe", "#ede9fe", "#f5f3ff"];
+const COLORS = ["#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#f1f5f9"];
 
 // Utility functions
+
 // Proper CSV line parser — handles quoted fields containing commas (e.g. "£7,541.81")
 const parseCSVLine = (line) => {
   const fields = [];
@@ -197,8 +198,8 @@ const KpiCard = ({ label, value, trend, isPositive, icon }) => (
       {icon && <div className="text-gray-300">{icon}</div>}
     </div>
     {trend !== undefined && (
-      <div className={`flex items-center gap-1 mt-4 text-sm font-medium ${isPositive ? "text-emerald-600" : "text-red-600"}`}>
-        <span>{isPositive ? "↑" : "↓"}</span>
+      <div className={`flex items-center gap-1 mt-4 text-sm font-medium ${isPositive === null ? "text-gray-500" : isPositive ? "text-emerald-600" : "text-red-600"}`}>
+        <span>{isPositive === null ? "\u2192" : isPositive ? "\u2191" : "\u2193"}</span>
         <span>{trend}</span>
       </div>
     )}
@@ -213,7 +214,7 @@ const PillToggle = ({ options, selected, onChange }) => (
         key={opt}
         onClick={() => onChange(opt)}
         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-          selected === opt ? "bg-violet-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          selected === opt ? "bg-slate-800 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
         }`}
       >
         {opt}
@@ -227,9 +228,6 @@ const Sidebar = ({ activePage, setActivePage, isLiveData, lastUpdate }) => (
   <div className="w-56 bg-white border-r border-gray-100 flex flex-col h-full shadow-sm">
     <div className="p-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-violet-700 rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-lg">V</span>
-        </div>
         <div>
           <p className="font-bold text-gray-900">Verbe</p>
           <p className="text-xs text-gray-500">Agency Pulse</p>
@@ -241,7 +239,7 @@ const Sidebar = ({ activePage, setActivePage, isLiveData, lastUpdate }) => (
           onClick={() => setActivePage("overview")}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
             activePage === "overview"
-              ? "bg-violet-50 text-violet-600"
+              ? "bg-slate-100 text-slate-800"
               : "text-gray-700 hover:bg-gray-50"
           }`}
         >
@@ -255,7 +253,7 @@ const Sidebar = ({ activePage, setActivePage, isLiveData, lastUpdate }) => (
           onClick={() => setActivePage("clients")}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
             activePage === "clients"
-              ? "bg-violet-50 text-violet-600"
+              ? "bg-slate-100 text-slate-800"
               : "text-gray-700 hover:bg-gray-50"
           }`}
         >
@@ -329,7 +327,7 @@ const OverviewPage = ({ revenueData, clientsData, isLiveData }) => {
 
   const monthlyData = useMemo(() => {
     return filteredRevenue.map((d) => ({
-      month: d.month.split(" ")[0],
+      month: d.month.split(" ")[0].substring(0, 3),
       revenue: Math.round(d.revenue),
     }));
   }, [filteredRevenue]);
@@ -342,7 +340,7 @@ const OverviewPage = ({ revenueData, clientsData, isLiveData }) => {
     years.forEach((year) => {
       const yearData = revenueData.filter((d) => d.year === year);
       yearData.forEach((d) => {
-        const monthName = d.month.split(" ")[0];
+        const monthName = d.month.split(" ")[0].substring(0, 3);
         const monthIdx = months.indexOf(monthName);
         const key = `M${monthIdx + 1}`;
         if (!result[key]) result[key] = { month: monthName };
@@ -350,7 +348,8 @@ const OverviewPage = ({ revenueData, clientsData, isLiveData }) => {
       });
     });
 
-    return Object.values(result);
+    const mo = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return Object.values(result).sort((a, b) => mo.indexOf(a.month) - mo.indexOf(b.month));
   }, [revenueData]);
 
   const t12mData = useMemo(() => {
@@ -358,7 +357,7 @@ const OverviewPage = ({ revenueData, clientsData, isLiveData }) => {
     for (let i = 0; i < 12; i++) {
       const idx = Math.max(0, revenueData.length - 12 + i);
       months.push({
-        month: revenueData[idx].month.split(" ")[0],
+        month: revenueData[idx].month.split(" ")[0].substring(0, 3),
         revenue: Math.round(revenueData[idx].revenue),
       });
     }
@@ -367,7 +366,7 @@ const OverviewPage = ({ revenueData, clientsData, isLiveData }) => {
 
   const arrData = useMemo(() => {
     return filteredRevenue.map((d) => ({
-      month: d.month.split(" ")[0],
+      month: d.month.split(" ")[0].substring(0, 3),
       net: Math.round(d.netARR),
       gross: Math.round(d.grossARR),
     }));
@@ -398,8 +397,8 @@ const OverviewPage = ({ revenueData, clientsData, isLiveData }) => {
         </div>
 
         <div className="grid grid-cols-4 gap-6 mb-8">
-          <KpiCard label="Current Month" value={formatCurrency(currentMonthRevenue)} trend={`${momChange > 0 ? "+" : ""}${momChange.toFixed(1)}% MoM`} isPositive={momChange > 0} />
-          <KpiCard label="YTD Revenue" value={formatCurrency(ytdRevenue)} trend={`${yoyChange > 0 ? "+" : ""}${yoyChange.toFixed(1)}% YoY`} isPositive={yoyChange > 0} />
+          <KpiCard label="Current Month" value={formatCurrency(currentMonthRevenue)} trend={`${momChange > 0 ? "+" : ""}${momChange.toFixed(1)}% MoM`} isPositive={momChange === 0 ? null : momChange > 0} />
+          <KpiCard label="YTD Revenue" value={formatCurrency(ytdRevenue)} trend={`${yoyChange > 0 ? "+" : ""}${yoyChange.toFixed(1)}% YoY`} isPositive={yoyChange === 0 ? null : yoyChange > 0} />
           <KpiCard label="Trailing 12M" value={formatCurrency(trailing12M)} />
           <KpiCard label="Current Net ARR" value={formatCurrency(currentNetARR)} />
         </div>
@@ -413,7 +412,7 @@ const OverviewPage = ({ revenueData, clientsData, isLiveData }) => {
                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
                 <YAxis stroke="#94a3b8" fontSize={12} />
                 <Tooltip formatter={(value) => formatCurrency(value)} contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px" }} />
-                <Bar dataKey="revenue" fill="#7c3aed" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="revenue" fill="#1e293b" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -423,11 +422,11 @@ const OverviewPage = ({ revenueData, clientsData, isLiveData }) => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={yoyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
+                <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickFormatter={(m) => m.substring(0, 3)} />
                 <YAxis stroke="#94a3b8" fontSize={12} />
                 <Tooltip formatter={(value) => formatCurrency(value)} contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px" }} />
                 <Legend />
-                {Object.keys(yoyData[0] || {}).filter((k) => k.startsWith("Year")).map((key, idx) => (
+                {[...new Set(yoyData.flatMap(d => Object.keys(d)))].filter((k) => k.startsWith("Year")).sort().map((key, idx) => (
                   <Line key={key} type="monotone" dataKey={key} stroke={COLORS[idx]} strokeWidth={2} dot={false} />
                 ))}
               </LineChart>
@@ -442,15 +441,15 @@ const OverviewPage = ({ revenueData, clientsData, isLiveData }) => {
               <AreaChart data={t12mData}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#1e293b" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#1e293b" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
                 <YAxis stroke="#94a3b8" fontSize={12} />
                 <Tooltip formatter={(value) => formatCurrency(value)} contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px" }} />
-                <Area type="monotone" dataKey="revenue" stroke="#7c3aed" fillOpacity={1} fill="url(#colorRevenue)" />
+                <Area type="monotone" dataKey="revenue" stroke="#1e293b" fillOpacity={1} fill="url(#colorRevenue)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -464,15 +463,15 @@ const OverviewPage = ({ revenueData, clientsData, isLiveData }) => {
               <AreaChart data={arrData}>
                 <defs>
                   <linearGradient id="colorArr" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#334155" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#334155" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
                 <YAxis stroke="#94a3b8" fontSize={12} />
                 <Tooltip formatter={(value) => formatCurrency(value)} contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px" }} />
-                <Area type="monotone" dataKey={arrMode} stroke="#6366f1" fillOpacity={1} fill="url(#colorArr)" />
+                <Area type="monotone" dataKey={arrMode} stroke="#334155" fillOpacity={1} fill="url(#colorArr)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -648,7 +647,7 @@ const ClientsPage = ({ revenueData, clientsData, isLiveData }) => {
             <h3 className="text-lg font-bold text-gray-900 mb-4">Client Revenue Distribution</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${formatCurrency(value)}`} outerRadius={80} fill="#7c3aed" dataKey="value">
+                <Pie data={pieData} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${formatCurrency(value)}`} outerRadius={80} fill="#1e293b" dataKey="value">
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
@@ -771,7 +770,7 @@ export default function VerbeDashboard() {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600 mx-auto mb-4" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800 mx-auto mb-4" />
           <p className="text-gray-600 font-medium">Loading dashboard...</p>
         </div>
       </div>
