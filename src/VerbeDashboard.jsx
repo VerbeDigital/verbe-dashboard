@@ -83,19 +83,39 @@ const FALLBACK_CLIENTS = {
 const COLORS = ["#7c3aed", "#6366f1", "#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe", "#ede9fe", "#f5f3ff"];
 
 // Utility functions
+// Proper CSV line parser — handles quoted fields containing commas (e.g. "£7,541.81")
+const parseCSVLine = (line) => {
+  const fields = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+    } else if (ch === "," && !inQuotes) {
+      fields.push(current);
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  fields.push(current);
+  return fields;
+};
+
 const parseCSVValue = (value) => {
   if (!value) return 0;
-  return parseFloat(value.toString().replace(/[£,"]/g, ""));
+  return parseFloat(value.toString().replace(/[£,\s]/g, "")) || 0;
 };
 
 const formatCurrency = (value) => {
-  if (value === null || value === undefined) return "£0";
-  return "£" + Math.round(value).toLocaleString();
+  if (value === null || value === undefined) return "Â£0";
+  return "Â£" + Math.round(value).toLocaleString();
 };
 
 const formatCurrencyDecimal = (value) => {
-  if (value === null || value === undefined) return "£0";
-  return "£" + value.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (value === null || value === undefined) return "Â£0";
+  return "Â£" + value.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 // Parse CSV data functions
@@ -106,7 +126,7 @@ const parseRevenueCSV = (csv) => {
 
   dataLines.forEach((line) => {
     if (!line) return;
-    const parts = line.split(",");
+    const parts = parseCSVLine(line);
     if (parts.length < 2) return;
 
     const year = parseInt(parts[0]);
@@ -148,7 +168,7 @@ const parseClientsCSV = (csv) => {
     }
 
     if (inClientSection) {
-      const parts = line.split(",");
+      const parts = parseCSVLine(line);
       if (parts.length < 15) return;
 
       const clientName = parts[1]?.trim();
@@ -178,7 +198,7 @@ const KpiCard = ({ label, value, trend, isPositive, icon }) => (
     </div>
     {trend !== undefined && (
       <div className={`flex items-center gap-1 mt-4 text-sm font-medium ${isPositive ? "text-emerald-600" : "text-red-600"}`}>
-        <span>{isPositive ? "↑" : "↓"}</span>
+        <span>{isPositive ? "â" : "â"}</span>
         <span>{trend}</span>
       </div>
     )}
